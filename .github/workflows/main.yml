@@ -3,7 +3,7 @@ name: Flutter Web Deploy
 on:
   push:
     branches:
-      - main   # แก้เป็น branch ที่คุณใช้จริง เช่น master หรือ develop
+      - main   # ถ้าใช้ master/develop แก้ตรงนี้
 
 jobs:
   build:
@@ -11,23 +11,32 @@ jobs:
 
     defaults:
       run:
-        working-directory: app   # << Flutter project อยู่ในโฟลเดอร์ app
+        working-directory: app   # Flutter project อยู่ในโฟลเดอร์ app
 
     steps:
-      # ดึง source code
-      - uses: actions/checkout@v3
+      # 1) Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      # ติดตั้ง Flutter
-      - uses: subosito/flutter-action@v2
+      # 2) ติดตั้ง Flutter (ใช้ stable channel)
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: 'stable'
+          flutter-version: '3.24.0'   # แนะนำ fix version จะได้ไม่พังเวลา Flutter อัปเดต
 
-      # build flutter web
-      - run: flutter build web --release
+      # 3) ติดตั้ง dependency
+      - name: Flutter Pub Get
+        run: flutter pub get
 
-      # deploy ไป GitHub Pages
+      # 4) Build Flutter Web
+      - name: Build Flutter Web
+        run: flutter build web --release
+
+      # 5) Deploy ไป GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: app/build/web   # output หลัง build
+          publish_dir: app/build/web
+          publish_branch: gh-pages
