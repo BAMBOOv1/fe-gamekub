@@ -1,37 +1,44 @@
-name: Flutter Web Deploy
+name: Flutter Web Auto Deploy
 
+# Trigger workflow ทุกครั้งที่ push ไป main
 on:
   push:
     branches:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: app
+        working-directory: app  # Flutter project อยู่ในโฟลเดอร์ app
 
     steps:
-      - name: Checkout
+      # 1️⃣ Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup Flutter (stable channel, fixed version 3.35.1)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.1'   # ✅ ใช้ Flutter 3.35.1 (มี Dart 3.9.x)
+          flutter-version: '3.35.1'
           channel: 'stable'
 
+      # 3️⃣ Install dependencies
       - name: Flutter Pub Get
         run: flutter pub get
 
+      # 4️⃣ Build Flutter Web
       - name: Build Flutter Web
         run: flutter build web --release
 
+      # 5️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # ใช้ PAT token ที่สร้างจากบัญชี GitHub ของคุณ
+          personal_token: ${{ secrets.PAT_TOKEN }}
           publish_dir: app/build/web
           publish_branch: gh-pages
